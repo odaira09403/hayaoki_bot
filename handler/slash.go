@@ -1,10 +1,15 @@
 package handler
 
 import (
+	"strings"
 	"encoding/json"
 	"log"
 	"os"
 	"net/http"
+)
+
+const (
+	USAGE_STRING = "Usage: /hayaoki [kiken|cancel|list] [month/day[-month/day]]"
 )
 
 type ResponceMessage struct {
@@ -32,12 +37,31 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 		s.logger.Println("Invalid token.")
 		return
 	}
-	r.PostFormValue("text")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	inputMsg := r.PostFormValue("text")
+	cmds := strings.Split(inputMsg, " ")
+	if len(cmds) < 1 {
+		s.responceMsg(w, "Prease specify the command.\n" + USAGE_STRING, "ephemeral")
+		return
+	} else if len(cmds) < 2 {
+		switch cmds[0] {
+		case "kiken":
+			s.responceMsg(w, "Valid message.\n", "ephemeral")
+		case "list":
+			s.responceMsg(w, "Valid message.\n", "ephemeral")
+		case "delete":
+			s.responceMsg(w, "Valid message.\n", "ephemeral")
+		default:
+			s.responceMsg(w, "Invalid message.\n" + USAGE_STRING, "ephemeral")
+		}
+
+	}
 	
-	rStruct := ResponceMessage{Text: "test", ResponseType: "ephemeral"}
+	
+}
+
+func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageType string) {
+	rStruct := ResponceMessage{Text: text, ResponseType: messageType}
 	// rStruct := ResponceMessage{Text: "test", ResponseType: "in_channel"}
 
 	body, err := json.Marshal(rStruct)
@@ -46,5 +70,7 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
     w.Write(body)
 }
