@@ -8,11 +8,13 @@ import (
 	"github.com/nlopes/slack"
 )
 
+// BotHandler handles SlaskBot message.
 type BotHandler struct {
-	Token string
+	Token  string
 	logger *log.Logger
 }
 
+// Run runs BotHandler.
 func (h *BotHandler) Run() int {
 	h.logger = log.New(os.Stderr, "[bot]\t", log.LstdFlags)
 	h.logger.Println("Start BotHandler.")
@@ -70,9 +72,9 @@ func (h *BotHandler) handleMessage(ev *slack.MessageEvent, rtm *slack.RTM) {
 	if user.ID == botName.ID {
 		h.logger.Println("Message from myself.")
 		return
-	}	
+	}
 
-	rtm.SendMessage(rtm.NewOutgoingMessage("Hi " + user.Name + ". I'm " + botName.Name + ".", ev.Channel))
+	rtm.SendMessage(rtm.NewOutgoingMessage("Hi "+user.Name+". I'm "+botName.Name+".", ev.Channel))
 	rtm.SendMessage(rtm.NewOutgoingMessage("I will regularly send you hayaoki information. ", ev.Channel))
 	return
 }
