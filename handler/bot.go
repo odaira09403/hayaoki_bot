@@ -14,6 +14,10 @@ type BotHandler struct {
 	logger *log.Logger
 }
 
+func NewBotHandler(token string) *BotHandler {
+	return &BotHandler{Token: token}
+}
+
 // Run runs BotHandler.
 func (h *BotHandler) Run() int {
 	h.logger = log.New(os.Stderr, "[bot]\t", log.LstdFlags)

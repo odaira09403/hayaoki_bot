@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/odaira09403/hayaoki_bot/util"
 )
 
 const (
@@ -24,8 +26,18 @@ type ResponceMessage struct {
 
 // SlashHandler handles slash message.
 type SlashHandler struct {
-	Token  string
-	logger *log.Logger
+	Token       string
+	SpleadSheet *util.SpreadSheet
+	logger      *log.Logger
+}
+
+func NewSlashHandler(token, googleSecretPath string) *SlashHandler {
+	ss, err := util.NewSpreadSheet(googleSecretPath)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	return &SlashHandler{Token: token, SpleadSheet: ss}
 }
 
 // Run runs SlashHandler.
@@ -46,11 +58,15 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inputMsg := r.PostFormValue("text")
-	cmds := strings.Split(inputMsg, " ")
-	if len(cmds) < 1 {
-		s.responceMsg(w, "Prease specify the command.\n"+UsageString, "ephemeral")
+	if inputMsg == "" {
+		err := s.hayaoki(w)
+		if err != nil {
+			s.responceMsg(w, err.Error(), "ephemeral")
+		}
 		return
 	}
+
+	cmds := strings.Split(inputMsg, " ")
 
 	switch cmds[0] {
 	case "kiken":
@@ -84,6 +100,17 @@ func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageTy
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+}
+
+func (s *SlashHandler) hayaoki(w http.ResponseWriter) error {
+	date, err := s.SpleadSheet.GetLastDate()
+	if err != nil {
+		return err
+	}
+	s.logger.Println("Last date: " + date.Format("2006/01/02"))
+
+	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
+	return nil
 }
 
 func (s *SlashHandler) kiken(dateStr string, w http.ResponseWriter) error {

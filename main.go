@@ -12,13 +12,13 @@ func main() {
 	slashToken := flag.String("slack-slash-token", "", "Slack slash command api token.")
 	flag.Parse()
 
-	botHandler := handler.BotHandler{Token: *botToken}
-	go func(){
+	botHandler := handler.NewBotHandler(*botToken)
+	go func() {
 		os.Exit(botHandler.Run())
-		}()
+	}()
 
-	slashHandler := handler.SlashHandler{Token: *slashToken}	
-	go func(){
+	slashHandler := handler.NewSlashHandler(*slashToken, "./google_client_secret.json")
+	go func() {
 		os.Exit(slashHandler.Run())
 	}()
 
