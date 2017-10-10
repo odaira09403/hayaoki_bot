@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	// SpreadSheetId is spread sheet ID.
+	// SpreadSheetID is spread sheet ID.
 	SpreadSheetID = "1zbByclh5LJ9Dxa0qGglDSt54lBboiPKynOP_KDcPnRs"
 )
 
@@ -52,7 +52,7 @@ func NewSpreadSheet(secretPath string) (*SpreadSheet, error) {
 
 // GetLastDate gets last date of spread sheet.
 func (s *SpreadSheet) GetLastDate() (*time.Time, error) {
-	readRange := "A2:A2"
+	readRange := "hayaoki!A2:A2"
 	resp, err := s.Seets.Values.Get(SpreadSheetID, readRange).Do()
 	if err != nil {
 		return nil, err
@@ -74,6 +74,18 @@ func (s *SpreadSheet) GetLastDate() (*time.Time, error) {
 	}
 
 	return &t, nil
+}
+
+func (s *SpreadSheet) AddNewDate() error {
+	dateStr := [][]interface{}{[]interface{}{time.Now().Format("2006/01/02")}}
+	fmt.Println(dateStr)
+	_, err := s.Seets.Values.Append(SpreadSheetID, "hayaoki!A2", &sheets.ValueRange{
+		Range:  "hayaoki!A2",
+		Values: dateStr}).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // getClient uses a Context and Config to retrieve a Token
@@ -126,7 +138,7 @@ func tokenCacheFile() (string, error) {
 	tokenCacheDir := filepath.Join(usr.HomeDir, ".credentials")
 	os.MkdirAll(tokenCacheDir, 0700)
 	return filepath.Join(tokenCacheDir,
-		url.QueryEscape("sheets.googleapis.com-go-quickstart.json")), err
+		url.QueryEscape("sheets.googleapis.go-hayaoki-bot.json")), err
 }
 
 // tokenFromFile retrieves a Token from a given file path.
