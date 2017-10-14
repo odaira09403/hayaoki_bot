@@ -97,25 +97,22 @@ func (s *SpreadSheet) AddNewDate() error {
 	return nil
 }
 
-// GetUserIndex gets user index of column from hayaoki sheet.
-func (s *SpreadSheet) GetUserIndex(userName string) (int, error) {
+// UserExists gets user index of column from hayaoki sheet.
+func (s *SpreadSheet) UserExists(userName string) (bool, error) {
 	ret, err := s.Seets.Values.Get(SpreadSheetID, "hayaoki!B1:Z1").Do()
 	if err != nil {
-		return 0, err
+		return false, err
 	}
-
 	if len(ret.Values) == 0 {
-		return 0, nil
+		return false, nil
 	}
 	users := ret.Values[0]
-	for i, user := range users {
+	for _, user := range users {
 		if user.(string) == userName {
-			fmt.Println(user)
-			return i + 2, nil
+			return true, nil
 		}
 	}
-
-	return 0, nil
+	return false, nil
 }
 
 // AddNewUser adds new user.

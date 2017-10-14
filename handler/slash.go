@@ -119,11 +119,11 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	// Append the sheet user if the user who send the command is not exist.
-	userIndex, err := s.SpleadSheet.GetUserIndex(user)
+	exists, err := s.SpleadSheet.UserExists(user)
 	if err != nil {
 		return err
 	}
-	if userIndex == 0 {
+	if !exists {
 		err := s.SpleadSheet.AddNewUser(user)
 		if err != nil {
 			return err
