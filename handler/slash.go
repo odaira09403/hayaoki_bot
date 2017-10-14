@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/odaira09403/hayaoki_bot/util"
+	"github.com/odaira09403/hayaoki_bot/sheets"
 )
 
 const (
@@ -28,13 +28,13 @@ type ResponceMessage struct {
 // SlashHandler handles slash message.
 type SlashHandler struct {
 	Token       string
-	SpleadSheet *util.SpreadSheet
+	SpleadSheet *sheets.SpreadSheet
 	logger      *log.Logger
 }
 
 // NewSlashHandler create SlashHandler instance.
 func NewSlashHandler(token, googleSecretPath string) *SlashHandler {
-	ss, err := util.NewSpreadSheet(googleSecretPath)
+	ss, err := sheets.NewSpreadSheet(googleSecretPath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -113,33 +113,33 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	// Append the sheet date if the date is not today.
-	date, err := s.SpleadSheet.GetLastDate()
+	date, err := s.SpleadSheet.Hayaoki.GetLastDate()
 	if err != nil {
 		return err
 	}
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, date.Location())
 	if date == nil || !date.Equal(today) {
 		s.logger.Println("Last date is not today.")
-		err := s.SpleadSheet.AddNewDate()
+		err := s.SpleadSheet.Hayaoki.AddNewDate()
 		if err != nil {
 			return err
 		}
 	}
 
 	// Append the sheet user if the user who send the command is not exist.
-	exists, err := s.SpleadSheet.UserExists(user)
+	exists, err := s.SpleadSheet.Hayaoki.UserExists(user)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		err := s.SpleadSheet.AddNewUser(user)
+		err := s.SpleadSheet.Hayaoki.AddNewUser(user)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Set hayaoki flag.
-	err = s.SpleadSheet.SetHayaokiFlag(user)
+	err = s.SpleadSheet.Hayaoki.SetHayaokiFlag(user)
 	if err != nil {
 		return err
 	}
