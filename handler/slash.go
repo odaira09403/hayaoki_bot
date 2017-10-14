@@ -72,9 +72,12 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	switch cmds[0] {
 	case "kiken":
-		if len(cmds) == 2 {
-			err := s.kiken(cmds[1], w)
-			if err != nil {
+		if len(cmds) == 1 {
+			if err := s.kiken("", w); err != nil {
+				s.responceMsg(w, err.Error(), "ephemeral")
+			}
+		} else if len(cmds) == 2 {
+			if err := s.kiken(cmds[1], w); err != nil {
 				s.responceMsg(w, err.Error(), "ephemeral")
 			}
 		} else {
@@ -149,25 +152,34 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 }
 
 func (s *SlashHandler) kiken(dateStr string, w http.ResponseWriter) error {
-	dates := strings.Split(dateStr, "-")
+	now := time.Now()
+	dates := []time.Time{}
+	if dateStr != "" {
+		dateStrs := strings.Split(dateStr, "-")
+		for _, str := range dateStrs {
+			t, err := time.Parse(InputDateFormat, str)
+			if err != nil {
+				return err
+			}
+			date := time.Date(now.Year(), t.Month(), t.Day(), 7, 30, 0, 0, now.Location())
+			if now.After(date) {
+				date = date.AddDate(1, 0, 0)
+			}
+			dates = append(dates, date)
+		}
+	} else {
+		dates = append(dates, time.Now().Add((24-7)*time.Hour-30*time.Minute))
+	}
+
 	if len(dates) > 2 {
 		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 	} else if len(dates) == 1 {
-		t, err := time.Parse(InputDateFormat, dates[0])
-		if err != nil {
-			return err
-		}
-		s.responceMsg(w, "Kiken accepted!\n Date: "+t.Format("2006/01/02"), "ephemeral")
+		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else {
-		t1, err := time.Parse(InputDateFormat, dates[0])
-		if err != nil {
-			return err
+		if dates[0].After(dates[1]) {
+			s.responceMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 		}
-		t2, err := time.Parse(InputDateFormat, dates[1])
-		if err != nil {
-			return err
-		}
-		s.responceMsg(w, "Kiken accepted!\n Date: "+t1.Format("2006/01/02")+"-"+t2.Format("2006/01/02"), "ephemeral")
+		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 	}
 	return nil
 }
