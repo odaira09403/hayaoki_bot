@@ -14,6 +14,7 @@ type BotHandler struct {
 	logger *log.Logger
 }
 
+// NewBotHandler creates BotHandler instance.
 func NewBotHandler(token string) *BotHandler {
 	return &BotHandler{Token: token}
 }

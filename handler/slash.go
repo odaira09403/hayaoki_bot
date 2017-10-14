@@ -32,6 +32,7 @@ type SlashHandler struct {
 	logger      *log.Logger
 }
 
+// NewSlashHandler create SlashHandler instance.
 func NewSlashHandler(token, googleSecretPath string) *SlashHandler {
 	ss, err := util.NewSpreadSheet(googleSecretPath)
 	if err != nil {
