@@ -59,7 +59,7 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	inputMsg := r.PostFormValue("text")
 	if inputMsg == "" {
-		err := s.hayaoki(w)
+		err := s.hayaoki(r.PostFormValue("user_name"), w)
 		if err != nil {
 			s.responceMsg(w, err.Error(), "ephemeral")
 		}
@@ -102,17 +102,29 @@ func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageTy
 	w.Write(body)
 }
 
-func (s *SlashHandler) hayaoki(w http.ResponseWriter) error {
+func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
+	// Append the sheet date if the date is not today.
 	date, err := s.SpleadSheet.GetLastDate()
 	if err != nil {
 		return err
 	}
-
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, date.Location())
 	if date == nil || !date.Equal(today) {
 		s.logger.Println("Last date is not today.")
 		err := s.SpleadSheet.AddNewDate()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Append the sheet user if the user who send the command is not exist.
+	userIndex, err := s.SpleadSheet.GetUserIndex(user)
+	if err != nil {
+		return err
+	}
+	if userIndex == 0 {
+		err := s.SpleadSheet.AddNewUser(user)
 		if err != nil {
 			return err
 		}

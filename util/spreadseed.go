@@ -60,7 +60,6 @@ func (s *SpreadSheet) GetLastDate() (*time.Time, error) {
 		return nil, err
 	}
 	dateStr := ""
-	fmt.Println(ret.Values)
 	if len(ret.Values) > 0 {
 		if len(ret.Values[0]) > 0 {
 			dateStr = ret.Values[0][0].(string)
@@ -78,8 +77,6 @@ func (s *SpreadSheet) GetLastDate() (*time.Time, error) {
 
 // AddNewDate adds new date to hayaoki sheet.
 func (s *SpreadSheet) AddNewDate() error {
-	// dateStr := [][]interface{}{[]interface{}{time.Now().Format("2006/01/02")}}
-
 	insertRequest := &sheets.Request{InsertDimension: &sheets.InsertDimensionRequest{
 		InheritFromBefore: false,
 		Range:             &sheets.DimensionRange{Dimension: "ROWS", StartIndex: 1, EndIndex: 2}}}
@@ -91,13 +88,53 @@ func (s *SpreadSheet) AddNewDate() error {
 
 	today := time.Now().Format("2006/1/2")
 	_, err = s.Seets.Values.Update(SpreadSheetID, "hayaoki!A2", &sheets.ValueRange{
-		MajorDimension: "ROWS",
-		Values:         [][]interface{}{[]interface{}{today}},
+		Values: [][]interface{}{[]interface{}{today}},
 	}).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// GetUserIndex gets user index of column from hayaoki sheet.
+func (s *SpreadSheet) GetUserIndex(userName string) (int, error) {
+	ret, err := s.Seets.Values.Get(SpreadSheetID, "hayaoki!B1:Z1").Do()
+	if err != nil {
+		return 0, err
+	}
+
+	if len(ret.Values) == 0 {
+		return 0, nil
+	}
+	users := ret.Values[0]
+	for i, user := range users {
+		if user.(string) == userName {
+			fmt.Println(user)
+			return i + 2, nil
+		}
+	}
+
+	return 0, nil
+}
+
+// AddNewUser adds new user.
+func (s *SpreadSheet) AddNewUser(userName string) error {
+	insertRequest := &sheets.Request{InsertDimension: &sheets.InsertDimensionRequest{
+		InheritFromBefore: false,
+		Range:             &sheets.DimensionRange{Dimension: "COLUMNS", StartIndex: 1, EndIndex: 2}}}
+	_, err := s.Seets.BatchUpdate(SpreadSheetID, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{insertRequest}}).Do()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.Seets.Values.Update(SpreadSheetID, "hayaoki!B1", &sheets.ValueRange{
+		Values: [][]interface{}{[]interface{}{userName}},
+	}).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
