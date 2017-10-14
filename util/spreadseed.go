@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,10 +23,12 @@ const (
 	SpreadSheetID = "1zbByclh5LJ9Dxa0qGglDSt54lBboiPKynOP_KDcPnRs"
 )
 
+// SpreadSheet manages spread sheet
 type SpreadSheet struct {
 	Seets *sheets.SpreadsheetsService
 }
 
+// NewSpreadSheet creates SpreadSheet instance.
 func NewSpreadSheet(secretPath string) (*SpreadSheet, error) {
 	ctx := context.Background()
 	b, err := ioutil.ReadFile(secretPath)
@@ -52,39 +55,49 @@ func NewSpreadSheet(secretPath string) (*SpreadSheet, error) {
 
 // GetLastDate gets last date of spread sheet.
 func (s *SpreadSheet) GetLastDate() (*time.Time, error) {
-	readRange := "hayaoki!A2:A2"
-	resp, err := s.Seets.Values.Get(SpreadSheetID, readRange).Do()
+	ret, err := s.Seets.Values.Get(SpreadSheetID, "hayaoki!A2").Do()
 	if err != nil {
 		return nil, err
 	}
-
 	dateStr := ""
-	if len(resp.Values) > 0 {
-		if len(resp.Values[0]) > 0 {
-			dateStr = resp.Values[0][0].(string)
+	fmt.Println(ret.Values)
+	if len(ret.Values) > 0 {
+		if len(ret.Values[0]) > 0 {
+			dateStr = ret.Values[0][0].(string)
 		}
 	}
 	if dateStr == "" {
-		return nil, nil
+		return nil, errors.New("Read cell error")
 	}
-
-	t, err := time.Parse("2006/1/2", dateStr)
+	date, err := time.Parse("2006/1/2", dateStr)
 	if err != nil {
 		return nil, err
 	}
-
-	return &t, nil
+	return &date, nil
 }
 
+// AddNewDate adds new date to hayaoki sheet.
 func (s *SpreadSheet) AddNewDate() error {
-	dateStr := [][]interface{}{[]interface{}{time.Now().Format("2006/01/02")}}
-	fmt.Println(dateStr)
-	_, err := s.Seets.Values.Append(SpreadSheetID, "hayaoki!A2", &sheets.ValueRange{
-		Range:  "hayaoki!A2",
-		Values: dateStr}).ValueInputOption("USER_ENTERED").Do()
+	// dateStr := [][]interface{}{[]interface{}{time.Now().Format("2006/01/02")}}
+
+	insertRequest := &sheets.Request{InsertDimension: &sheets.InsertDimensionRequest{
+		InheritFromBefore: false,
+		Range:             &sheets.DimensionRange{Dimension: "ROWS", StartIndex: 1, EndIndex: 2}}}
+	_, err := s.Seets.BatchUpdate(SpreadSheetID, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{insertRequest}}).Do()
 	if err != nil {
 		return err
 	}
+
+	today := time.Now().Format("2006/1/2")
+	_, err = s.Seets.Values.Update(SpreadSheetID, "hayaoki!A2", &sheets.ValueRange{
+		MajorDimension: "ROWS",
+		Values:         [][]interface{}{[]interface{}{today}},
+	}).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
