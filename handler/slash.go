@@ -118,9 +118,6 @@ func (s *SlashHandler) hayaoki(w http.ResponseWriter) error {
 		}
 	}
 
-	s.logger.Println("Last date: " + date.Format("2006/01/02"))
-	s.logger.Println("Today: " + today.Format("2006/01/02"))
-
 	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
 	return nil
 }
