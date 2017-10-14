@@ -135,6 +135,30 @@ func (s *SpreadSheet) AddNewUser(userName string) error {
 	return nil
 }
 
+// SetHayaokiFlag sets hayaoki flag of the spesicied user.
+func (s *SpreadSheet) SetHayaokiFlag(userName string) error {
+	ret, err := s.Seets.Values.Get(SpreadSheetID, "hayaoki!B1:Z1").Do()
+	if err != nil {
+		return err
+	}
+	if len(ret.Values) == 0 {
+		return errors.New("User not found")
+	}
+	users := ret.Values[0]
+	for i, user := range users {
+		if user.(string) == userName {
+			_, err = s.Seets.Values.Update(SpreadSheetID, "hayaoki!"+string('B'+i)+"2", &sheets.ValueRange{
+				Values: [][]interface{}{[]interface{}{"1"}},
+			}).ValueInputOption("USER_ENTERED").Do()
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return errors.New("User not found")
+}
+
 // getClient uses a Context and Config to retrieve a Token
 // then generate a Client. It returns the generated Client.
 func getClient(ctx context.Context, config *oauth2.Config) (*http.Client, error) {

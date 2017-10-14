@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -103,12 +104,18 @@ func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageTy
 }
 
 func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
+	// Time limitation
+	now := time.Now()
+	limit := time.Date(now.Year(), now.Month(), now.Day(), 8, 35, 0, 0, now.Location())
+	if now.Hour() < 6 || now.After(limit) {
+		return errors.New("Please type /hayaoki between 6:00 and 8:35")
+	}
+
 	// Append the sheet date if the date is not today.
 	date, err := s.SpleadSheet.GetLastDate()
 	if err != nil {
 		return err
 	}
-	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, date.Location())
 	if date == nil || !date.Equal(today) {
 		s.logger.Println("Last date is not today.")
@@ -128,6 +135,12 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// Set hayaoki flag.
+	err = s.SpleadSheet.SetHayaokiFlag(user)
+	if err != nil {
+		return err
 	}
 
 	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
