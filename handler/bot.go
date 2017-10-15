@@ -10,13 +10,14 @@ import (
 
 // BotHandler handles SlaskBot message.
 type BotHandler struct {
-	Token  string
-	logger *log.Logger
+	Token          string
+	SlashToBotChan chan string
+	logger         *log.Logger
 }
 
 // NewBotHandler creates BotHandler instance.
-func NewBotHandler(token string) *BotHandler {
-	return &BotHandler{Token: token}
+func NewBotHandler(token string, slashToBotChan chan string) *BotHandler {
+	return &BotHandler{Token: token, SlashToBotChan: slashToBotChan}
 }
 
 // Run runs BotHandler.
@@ -42,6 +43,10 @@ func (h *BotHandler) Run() int {
 				h.logger.Print("Invalid credentials")
 				return 1
 			}
+
+		case msg := <-h.SlashToBotChan:
+			h.logger.Println("Message from slash command:", msg)
+			rtm.SendMessage(rtm.NewOutgoingMessage(msg, "C7G1P683H"))
 		}
 	}
 }
