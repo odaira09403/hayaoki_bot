@@ -13,7 +13,7 @@ type KikenSheet struct {
 
 // UserExists gets user index of column from hayaoki sheet.
 func (s *KikenSheet) UserExists(userName string) (bool, error) {
-	ret, err := s.Sheets.Values.Get(SpreadSheetID, "kiken!A2:A25").MajorDimension("COLUMNS").Do()
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "kiken!A2:A").MajorDimension("COLUMNS").Do()
 	if err != nil {
 		return false, err
 	}

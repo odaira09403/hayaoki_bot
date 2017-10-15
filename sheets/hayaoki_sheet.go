@@ -58,7 +58,7 @@ func (s *HayaokiSheet) AddNewDate() error {
 
 // UserExists gets user index of column from hayaoki sheet.
 func (s *HayaokiSheet) UserExists(userName string) (bool, error) {
-	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:Z1").Do()
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:1").Do()
 	if err != nil {
 		return false, err
 	}
@@ -96,7 +96,7 @@ func (s *HayaokiSheet) AddNewUser(userName string) error {
 
 // SetHayaokiFlag sets hayaoki flag of the spesicied user.
 func (s *HayaokiSheet) SetHayaokiFlag(userName string) error {
-	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:Z1").Do()
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:1").Do()
 	if err != nil {
 		return err
 	}
