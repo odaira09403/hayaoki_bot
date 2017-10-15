@@ -60,8 +60,9 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inputMsg := r.PostFormValue("text")
+	userName := r.PostFormValue("user_name")
 	if inputMsg == "" {
-		err := s.hayaoki(r.PostFormValue("user_name"), w)
+		err := s.hayaoki(userName, w)
 		if err != nil {
 			s.responceMsg(w, err.Error(), "ephemeral")
 		}
@@ -73,11 +74,11 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	switch cmds[0] {
 	case "kiken":
 		if len(cmds) == 1 {
-			if err := s.kiken("", w); err != nil {
+			if err := s.kiken(userName, "", w); err != nil {
 				s.responceMsg(w, err.Error(), "ephemeral")
 			}
 		} else if len(cmds) == 2 {
-			if err := s.kiken(cmds[1], w); err != nil {
+			if err := s.kiken(userName, cmds[1], w); err != nil {
 				s.responceMsg(w, err.Error(), "ephemeral")
 			}
 		} else {
@@ -130,11 +131,11 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	// Append the sheet user if the user who send the command is not exist.
-	exists, err := s.SpleadSheet.Hayaoki.UserExists(user)
+	exist, err := s.SpleadSheet.Hayaoki.UserExists(user)
 	if err != nil {
 		return err
 	}
-	if !exists {
+	if !exist {
 		err := s.SpleadSheet.Hayaoki.AddNewUser(user)
 		if err != nil {
 			return err
@@ -151,7 +152,20 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	return nil
 }
 
-func (s *SlashHandler) kiken(dateStr string, w http.ResponseWriter) error {
+func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter) error {
+	// Append the sheet user if the user who send the command is not exist.
+	exist, err := s.SpleadSheet.Kiken.UserExists(user)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		err := s.SpleadSheet.Kiken.AddNewUser(user)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Convert no year date string to date.
 	now := time.Now()
 	dates := []time.Time{}
 	if dateStr != "" {
@@ -171,15 +185,15 @@ func (s *SlashHandler) kiken(dateStr string, w http.ResponseWriter) error {
 		dates = append(dates, time.Now().Add((24-7)*time.Hour-30*time.Minute))
 	}
 
-	if len(dates) > 2 {
-		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
-	} else if len(dates) == 1 {
+	if len(dates) == 1 {
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
-	} else {
+	} else if len(dates) == 2 {
 		if dates[0].After(dates[1]) {
 			s.responceMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 		}
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
+	} else {
+		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 	}
 	return nil
 }
