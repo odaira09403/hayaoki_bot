@@ -3,14 +3,24 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"github.com/odaira09403/hayaoki_bot/handler"
 )
+
+const location = "Asia/Tokyo"
 
 func main() {
 	botToken := flag.String("slack-bot-token", "", "Slack bot api token.")
 	slashToken := flag.String("slack-slash-token", "", "Slack slash command api token.")
 	flag.Parse()
+
+	// Init timezone
+	loc, err := time.LoadLocation(location)
+	if err != nil {
+		loc = time.FixedZone(location, 9*60*60)
+	}
+	time.Local = loc
 
 	botHandler := handler.NewBotHandler(*botToken)
 	go func() {
