@@ -185,6 +185,11 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 		dates = append(dates, time.Now().Add((24-7)*time.Hour-30*time.Minute))
 	}
 
+	// Add new date.
+	if err := s.SpleadSheet.Kiken.AddDate(user, dates); err != nil {
+		return err
+	}
+
 	if len(dates) == 1 {
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else if len(dates) == 2 {
