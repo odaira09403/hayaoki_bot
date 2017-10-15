@@ -22,12 +22,14 @@ func main() {
 	}
 	time.Local = loc
 
-	botHandler := handler.NewBotHandler(*botToken)
+	slashToBotChan := make(chan string)
+
+	botHandler := handler.NewBotHandler(*botToken, slashToBotChan)
 	go func() {
 		os.Exit(botHandler.Run())
 	}()
 
-	slashHandler := handler.NewSlashHandler(*slashToken, "./google_client_secret.json")
+	slashHandler := handler.NewSlashHandler(*slashToken, "./google_client_secret.json", slashToBotChan)
 	go func() {
 		os.Exit(slashHandler.Run())
 	}()

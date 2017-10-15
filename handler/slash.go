@@ -27,19 +27,20 @@ type ResponceMessage struct {
 
 // SlashHandler handles slash message.
 type SlashHandler struct {
-	Token       string
-	SpleadSheet *sheets.SpreadSheet
-	logger      *log.Logger
+	Token          string
+	SpleadSheet    *sheets.SpreadSheet
+	SlashToBotChan chan string
+	logger         *log.Logger
 }
 
 // NewSlashHandler create SlashHandler instance.
-func NewSlashHandler(token, googleSecretPath string) *SlashHandler {
+func NewSlashHandler(token, googleSecretPath string, slashToBotChan chan string) *SlashHandler {
 	ss, err := sheets.NewSpreadSheet(googleSecretPath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	return &SlashHandler{Token: token, SpleadSheet: ss}
+	return &SlashHandler{Token: token, SpleadSheet: ss, SlashToBotChan: slashToBotChan}
 }
 
 // Run runs SlashHandler.
@@ -148,6 +149,7 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 		return err
 	}
 
+	s.SlashToBotChan <- user + "さんが早起きに成功しました。"
 	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
 	return nil
 }
@@ -191,11 +193,13 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 	}
 
 	if len(dates) == 1 {
+		s.SlashToBotChan <- user + "さんがに" + dates[0].Format("01月02日") + "に棄権します。"
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else if len(dates) == 2 {
 		if dates[0].After(dates[1]) {
 			s.responceMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 		}
+		s.SlashToBotChan <- user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[0].Format("01月02日") + "の間棄権します。"
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 	} else {
 		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
