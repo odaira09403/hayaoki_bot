@@ -193,7 +193,7 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 	}
 
 	if len(dates) == 1 {
-		s.SlashToBotChan <- user + "さんがに" + dates[0].Format("01月02日") + "に棄権します。"
+		s.SlashToBotChan <- user + "さんが" + dates[0].Format("01月02日") + "に棄権します。"
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else if len(dates) == 2 {
 		if dates[0].After(dates[1]) {
