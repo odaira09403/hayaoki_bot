@@ -159,7 +159,7 @@ func (s *KikenSheet) containsDates(prevDates string, dates []time.Time) (bool, e
 					return true, nil
 				}
 			} else if len(pDates) == 2 {
-				if (noNoizeDate.After(pDates[0]) && noNoizeDate.Before(pDates[2])) ||
+				if (noNoizeDate.After(pDates[0]) && noNoizeDate.Before(pDates[1])) ||
 					noNoizeDate.Equal(pDates[0]) || noNoizeDate.Equal(pDates[1]) {
 					return true, nil
 				}
