@@ -34,6 +34,25 @@ func (s *HayaokiSheet) GetLastDate() (*time.Time, error) {
 	return &date, nil
 }
 
+// GetLastGetResult gets last result of hayaoki.
+func (s *HayaokiSheet) GetLastResult() (map[string]string, error) {
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:2").Do()
+	if err != nil {
+		return nil, err
+	}
+	retMap := map[string]string{}
+	names := ret.Values[0]
+	times := ret.Values[1]
+	for i, name := range names {
+		timeStr := ""
+		if len(times) > i {
+			timeStr = times[i].(string)
+		}
+		retMap[name.(string)] = timeStr
+	}
+	return retMap, nil
+}
+
 // AddNewDate adds new date to hayaoki sheet.
 func (s *HayaokiSheet) AddNewDate() error {
 	insertRequest := &sheets.Request{InsertDimension: &sheets.InsertDimensionRequest{
