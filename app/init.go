@@ -18,4 +18,7 @@ func init() {
 
 	slashHandler := handler.NewSlashHandler()
 	slashHandler.Run()
+
+	cronHandler := handler.NewCronHandler()
+	cronHandler.Run()
 }
