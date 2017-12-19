@@ -86,7 +86,10 @@ func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
 	successUsers := []string{}
 	for key, val := range hayaokiMap {
 		if val == "" {
-			kikenStr := kikenMap[key]
+			kikenStr := ""
+			if val, ok := kikenMap[key]; ok {
+				kikenStr = val
+			}
 			contains, err := s.containsToday(kikenStr)
 			if err != nil {
 				log.Errorf(ctx, err.Error())
