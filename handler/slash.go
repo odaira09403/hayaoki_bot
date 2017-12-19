@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"errors"
 	"time"
 
 	"google.golang.org/appengine/log"
@@ -14,6 +13,7 @@ import (
 	"github.com/odaira09403/hayaoki_bot/sheets"
 	"github.com/nlopes/slack"
 	"google.golang.org/appengine/urlfetch"
+	"errors"
 )
 
 const (
@@ -33,6 +33,7 @@ type ResponceMessage struct {
 type SlashHandler struct {
 	Ctx            context.Context
 	BotClient      *slack.Client
+	PostPram       slack.PostMessageParameters
 	HayaokiChannel string
 	SpreadSheet    *sheets.SpreadSheet
 }
@@ -90,6 +91,11 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	// New RTM instance for the reply.
 	slack.SetHTTPClient(urlfetch.Client(ctx))
 	s.BotClient = slack.New(slackToken.Value)
+	s.PostPram = slack.PostMessageParameters{
+		Username:    "hayaoki_bot",
+		AsUser:      true,
+		IconURL:     "https://avatars.slack-edge.com/2017-10-07/252871472931_f189dd4ee78316f6cd13_72.png",
+	}
 
 	inputMsg := r.PostFormValue("text")
 	userName := r.PostFormValue("user_name")
@@ -175,12 +181,12 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	// Set hayaoki flag.
-	err = s.SpreadSheet.Hayaoki.SetHayaokiFlag(user)
+	err = s.SpreadSheet.Hayaoki.SetHayaokiFlag(now, user)
 	if err != nil {
 		return err
 	}
 
-	s.BotClient.PostMessage(s.HayaokiChannel, user + "さんが早起きに成功しました。", slack.NewPostMessageParameters())
+	s.BotClient.PostMessage(s.HayaokiChannel, user + "さんが早起きに成功しました。", s.PostPram)
 	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
 	return nil
 }
@@ -227,7 +233,7 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 		if _, _, err := s.BotClient.PostMessage(
 			s.HayaokiChannel,
 			user + "さんがに" + dates[0].Format("01月02日") + "に棄権します。",
-			slack.NewPostMessageParameters()); err != nil {
+			s.PostPram); err != nil {
 			return err
 		}
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
@@ -238,7 +244,7 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 		if _, _, err := s.BotClient.PostMessage(
 			s.HayaokiChannel,
 			user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[0].Format("01月02日") + "の間棄権します。",
-			slack.NewPostMessageParameters()); err != nil {
+			s.PostPram); err != nil {
 				return err
 		}
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")

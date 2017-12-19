@@ -47,7 +47,7 @@ func (s *HayaokiSheet) AddNewDate() error {
 
 	today := time.Now().Format("2006/1/2")
 	_, err = s.Sheets.Values.Update(SpreadSheetID, "hayaoki!A2", &sheets.ValueRange{
-		Values: [][]interface{}{[]interface{}{today}},
+		Values: [][]interface{}{{today}},
 	}).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (s *HayaokiSheet) AddNewUser(userName string) error {
 	}
 
 	_, err = s.Sheets.Values.Update(SpreadSheetID, "hayaoki!B1", &sheets.ValueRange{
-		Values: [][]interface{}{[]interface{}{userName}},
+		Values: [][]interface{}{{userName}},
 	}).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func (s *HayaokiSheet) AddNewUser(userName string) error {
 }
 
 // SetHayaokiFlag sets hayaoki flag of the spesicied user.
-func (s *HayaokiSheet) SetHayaokiFlag(userName string) error {
+func (s *HayaokiSheet) SetHayaokiFlag(now time.Time, userName string) error {
 	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:1").Do()
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (s *HayaokiSheet) SetHayaokiFlag(userName string) error {
 	for i, user := range users {
 		if user.(string) == userName {
 			_, err = s.Sheets.Values.Update(SpreadSheetID, "hayaoki!"+string('B'+i)+"2", &sheets.ValueRange{
-				Values: [][]interface{}{[]interface{}{"1"}},
+				Values: [][]interface{}{{now.Format("15:04")}},
 			}).ValueInputOption("USER_ENTERED").Do()
 			if err != nil {
 				return err
