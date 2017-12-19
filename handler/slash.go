@@ -40,7 +40,7 @@ type SlashHandler struct {
 
 // NewSlashHandler create SlashHandler instance.
 func NewSlashHandler() *SlashHandler {
-	return &SlashHandler{HayaokiChannel: "C7G1P683H"}
+	return &SlashHandler{HayaokiChannel: "C0FN5ULTD"}
 }
 
 // Run runs SlashHandler.
