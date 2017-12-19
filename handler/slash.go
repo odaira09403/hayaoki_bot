@@ -2,14 +2,18 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
-	"os"
 	"strings"
+	"errors"
 	"time"
 
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine"
+	"context"
+	"google.golang.org/appengine/datastore"
 	"github.com/odaira09403/hayaoki_bot/sheets"
+	"github.com/nlopes/slack"
+	"google.golang.org/appengine/urlfetch"
 )
 
 const (
@@ -27,44 +31,72 @@ type ResponceMessage struct {
 
 // SlashHandler handles slash message.
 type SlashHandler struct {
-	Token          string
-	SpleadSheet    *sheets.SpreadSheet
-	SlashToBotChan chan string
-	logger         *log.Logger
+	Ctx            context.Context
+	BotClient      *slack.Client
+	HayaokiChannel string
+	SpreadSheet    *sheets.SpreadSheet
 }
 
 // NewSlashHandler create SlashHandler instance.
-func NewSlashHandler(token, googleSecretPath string, slashToBotChan chan string) *SlashHandler {
-	ss, err := sheets.NewSpreadSheet(googleSecretPath)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	return &SlashHandler{Token: token, SpleadSheet: ss, SlashToBotChan: slashToBotChan}
+func NewSlashHandler() *SlashHandler {
+	return &SlashHandler{HayaokiChannel: "C7G1P683H"}
 }
 
 // Run runs SlashHandler.
-func (s *SlashHandler) Run() int {
-	s.logger = log.New(os.Stderr, "[slash]\t", log.LstdFlags)
-	s.logger.Println("Start SlashHandler.")
+func (s *SlashHandler) Run() {
 	http.HandleFunc("/command", s.handler)
-	s.logger.Fatal(http.ListenAndServe(":3000", nil))
-	return 1
+}
+
+type SlackToken struct {
+	Value string `datastore:"value"`
 }
 
 func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
-	s.logger.Println("Recieive message.")
+	ctx := appengine.NewContext(r)
+	s.Ctx = ctx
+	log.Infof(ctx, "Receive message.")
 
-	if r.PostFormValue("token") != s.Token {
-		s.logger.Println("Invalid token.")
+	// Get slash command token.
+	key := datastore.NewKey(ctx, "slack", "slash_token", 0, nil)
+	slackToken := new(SlackToken)
+	if err := datastore.Get(ctx, key, slackToken); err != nil {
+		log.Errorf(ctx, err.Error())
 		return
 	}
+
+	// Check access token.
+	if r.PostFormValue("token") != slackToken.Value {
+		log.Infof(ctx, "Invalid token.")
+		return
+	}
+
+	// New spread sheet instance.
+	var err error = nil
+	s.SpreadSheet, err = sheets.NewSpreadSheet(ctx)
+	if err != nil {
+		log.Errorf(ctx, err.Error())
+		s.responceMsg(w, err.Error(), "ephemeral")
+		return
+	}
+
+	// Get bot token.
+	key = datastore.NewKey(ctx, "slack", "bot_token", 0, nil)
+	slackToken = new(SlackToken)
+	if err := datastore.Get(ctx, key, slackToken); err != nil {
+		log.Errorf(ctx, err.Error())
+		return
+	}
+
+	// New RTM instance for the reply.
+	slack.SetHTTPClient(urlfetch.Client(ctx))
+	s.BotClient = slack.New(slackToken.Value)
 
 	inputMsg := r.PostFormValue("text")
 	userName := r.PostFormValue("user_name")
 	if inputMsg == "" {
 		err := s.hayaoki(userName, w)
 		if err != nil {
+			log.Errorf(ctx, err.Error())
 			s.responceMsg(w, err.Error(), "ephemeral")
 		}
 		return
@@ -96,11 +128,10 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageType string) {
 	rStruct := ResponceMessage{Text: text, ResponseType: messageType}
-	// rStruct := ResponceMessage{Text: "test", ResponseType: "in_channel"}
 
 	body, err := json.Marshal(rStruct)
 	if err != nil {
-		s.logger.Println(err.Error())
+		log.Errorf(s.Ctx, err.Error())
 		return
 	}
 
@@ -118,50 +149,50 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	// Append the sheet date if the date is not today.
-	date, err := s.SpleadSheet.Hayaoki.GetLastDate()
+	date, err := s.SpreadSheet.Hayaoki.GetLastDate()
 	if err != nil {
 		return err
 	}
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, date.Location())
 	if date == nil || !date.Equal(today) {
-		s.logger.Println("Last date is not today.")
-		err := s.SpleadSheet.Hayaoki.AddNewDate()
+		log.Infof(s.Ctx, "Last date is not today.")
+		err := s.SpreadSheet.Hayaoki.AddNewDate()
 		if err != nil {
 			return err
 		}
 	}
 
 	// Append the sheet user if the user who send the command is not exist.
-	exist, err := s.SpleadSheet.Hayaoki.UserExists(user)
+	exist, err := s.SpreadSheet.Hayaoki.UserExists(user)
 	if err != nil {
 		return err
 	}
 	if !exist {
-		err := s.SpleadSheet.Hayaoki.AddNewUser(user)
+		err := s.SpreadSheet.Hayaoki.AddNewUser(user)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Set hayaoki flag.
-	err = s.SpleadSheet.Hayaoki.SetHayaokiFlag(user)
+	err = s.SpreadSheet.Hayaoki.SetHayaokiFlag(user)
 	if err != nil {
 		return err
 	}
 
-	s.SlashToBotChan <- user + "さんが早起きに成功しました。"
+	s.BotClient.PostMessage(s.HayaokiChannel, user + "さんが早起きに成功しました。", slack.NewPostMessageParameters())
 	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
 	return nil
 }
 
 func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter) error {
 	// Append the sheet user if the user who send the command is not exist.
-	exist, err := s.SpleadSheet.Kiken.UserExists(user)
+	exist, err := s.SpreadSheet.Kiken.UserExists(user)
 	if err != nil {
 		return err
 	}
 	if !exist {
-		err := s.SpleadSheet.Kiken.AddNewUser(user)
+		err := s.SpreadSheet.Kiken.AddNewUser(user)
 		if err != nil {
 			return err
 		}
@@ -188,18 +219,28 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 	}
 
 	// Add new date.
-	if err := s.SpleadSheet.Kiken.AddDate(user, dates); err != nil {
+	if err := s.SpreadSheet.Kiken.AddDate(user, dates); err != nil {
 		return err
 	}
 
 	if len(dates) == 1 {
-		s.SlashToBotChan <- user + "さんがに" + dates[0].Format("01月02日") + "に棄権します。"
+		if _, _, err := s.BotClient.PostMessage(
+			s.HayaokiChannel,
+			user + "さんがに" + dates[0].Format("01月02日") + "に棄権します。",
+			slack.NewPostMessageParameters()); err != nil {
+			return err
+		}
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else if len(dates) == 2 {
 		if dates[0].After(dates[1]) {
 			s.responceMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 		}
-		s.SlashToBotChan <- user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[0].Format("01月02日") + "の間棄権します。"
+		if _, _, err := s.BotClient.PostMessage(
+			s.HayaokiChannel,
+			user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[0].Format("01月02日") + "の間棄権します。",
+			slack.NewPostMessageParameters()); err != nil {
+				return err
+		}
 		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 	} else {
 		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
