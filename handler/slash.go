@@ -76,7 +76,7 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	s.SpreadSheet, err = sheets.NewSpreadSheet(ctx)
 	if err != nil {
 		log.Errorf(ctx, err.Error())
-		s.responceMsg(w, err.Error(), "ephemeral")
+		s.responseMsg(w, err.Error(), "ephemeral")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 		err := s.hayaoki(userName, w)
 		if err != nil {
 			log.Errorf(ctx, err.Error())
-			s.responceMsg(w, err.Error(), "ephemeral")
+			s.responseMsg(w, err.Error(), "ephemeral")
 		}
 		return
 	}
@@ -114,25 +114,25 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	case "kiken":
 		if len(cmds) == 1 {
 			if err := s.kiken(userName, "", w); err != nil {
-				s.responceMsg(w, err.Error(), "ephemeral")
+				s.responseMsg(w, err.Error(), "ephemeral")
 			}
 		} else if len(cmds) == 2 {
 			if err := s.kiken(userName, cmds[1], w); err != nil {
-				s.responceMsg(w, err.Error(), "ephemeral")
+				s.responseMsg(w, err.Error(), "ephemeral")
 			}
 		} else {
-			s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
+			s.responseMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 		}
 	case "list":
-		s.responceMsg(w, "Valid format.\n", "ephemeral")
+		s.responseMsg(w, "Valid format.\n", "ephemeral")
 	case "delete":
-		s.responceMsg(w, "Valid format.\n", "ephemeral")
+		s.responseMsg(w, "Valid format.\n", "ephemeral")
 	default:
-		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
+		s.responseMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 	}
 }
 
-func (s *SlashHandler) responceMsg(w http.ResponseWriter, text string, messageType string) {
+func (s *SlashHandler) responseMsg(w http.ResponseWriter, text string, messageType string) {
 	rStruct := ResponceMessage{Text: text, ResponseType: messageType}
 
 	body, err := json.Marshal(rStruct)
@@ -187,7 +187,7 @@ func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	}
 
 	s.BotClient.PostMessage(s.HayaokiChannel, user + "さんが早起きに成功しました。", s.PostPram)
-	s.responceMsg(w, "Hayaoki accepted!", "ephemeral")
+	s.responseMsg(w, "Hayaoki accepted!", "ephemeral")
 	return nil
 }
 
@@ -236,10 +236,10 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 			s.PostPram); err != nil {
 			return err
 		}
-		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
+		s.responseMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02"), "ephemeral")
 	} else if len(dates) == 2 {
 		if dates[0].After(dates[1]) {
-			s.responceMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
+			s.responseMsg(w, "Invalid range.\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 		}
 		if _, _, err := s.BotClient.PostMessage(
 			s.HayaokiChannel,
@@ -247,9 +247,9 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 			s.PostPram); err != nil {
 				return err
 		}
-		s.responceMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
+		s.responseMsg(w, "Kiken accepted!\n Date: "+dates[0].Format("2006/01/02")+"-"+dates[1].Format("2006/01/02"), "ephemeral")
 	} else {
-		s.responceMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
+		s.responseMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 	}
 	return nil
 }
