@@ -14,6 +14,22 @@ type KikenSheet struct {
 	Sheets *sheets.SpreadsheetsService
 }
 
+// GetKikenList gets list of kiken dates.
+func (s *KikenSheet) GetKikenList() (map[string]string, error) {
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "kiken!A2:B").Do()
+	if err != nil {
+		return nil, err
+	}
+	retMap := map[string]string{}
+	for _, row := range ret.Values {
+		if len(row) < 2 {
+			break
+		}
+		retMap[row[0].(string)] = row[1].(string)
+	}
+	return retMap, nil
+}
+
 // UserExists gets user index of column from hayaoki sheet.
 func (s *KikenSheet) UserExists(userName string) (bool, error) {
 	ret, err := s.Sheets.Values.Get(SpreadSheetID, "kiken!A2:A").MajorDimension("COLUMNS").Do()
@@ -143,7 +159,7 @@ func (s *KikenSheet) containsDates(prevDates string, dates []time.Time) (bool, e
 					return true, nil
 				}
 			} else if len(pDates) == 2 {
-				if (noNoizeDate.After(pDates[0]) && noNoizeDate.Before(pDates[2])) ||
+				if (noNoizeDate.After(pDates[0]) && noNoizeDate.Before(pDates[1])) ||
 					noNoizeDate.Equal(pDates[0]) || noNoizeDate.Equal(pDates[1]) {
 					return true, nil
 				}

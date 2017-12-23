@@ -3,7 +3,6 @@ package sheets
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -28,18 +27,8 @@ type SpreadSheet struct {
 }
 
 // NewSpreadSheet creates SpreadSheet instance.
-func NewSpreadSheet(secretPath string) (*SpreadSheet, error) {
-	ctx := context.Background()
-	b, err := ioutil.ReadFile(secretPath)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
-	if err != nil {
-		return nil, err
-	}
-	client, err := getClient(ctx, config)
+func NewSpreadSheet(ctx context.Context) (*SpreadSheet, error) {
+	client, err := google.DefaultClient(ctx, sheets.SpreadsheetsScope)
 	if err != nil {
 		return nil, err
 	}
