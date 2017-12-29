@@ -127,5 +127,5 @@ func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *CronHandler) containsToday(dateStr string) (bool, error) {
-	return sheets.KikenSheet{}.ContainsDate(dateStr, time.Now())
+	return (&sheets.KikenSheet{}).ContainsDate(dateStr, time.Now())
 }
