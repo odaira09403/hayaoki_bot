@@ -35,14 +35,14 @@ func (s *HayaokiSheet) GetLastDate() (*time.Time, error) {
 }
 
 // GetLastGetResult gets last result of hayaoki.
-func (s *HayaokiSheet) GetLastResult() (map[string]string, error) {
-	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!B1:2").Do()
+func (s *HayaokiSheet) GetLastResult() (map[string]string, bool, error) {
+	ret, err := s.Sheets.Values.Get(SpreadSheetID, "hayaoki!A1:2").Do()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	retMap := map[string]string{}
-	names := ret.Values[0]
-	times := ret.Values[1]
+	names := ret.Values[0][1:]
+	times := ret.Values[1][1:]
 	for i, name := range names {
 		timeStr := ""
 		if len(times) > i {
@@ -50,7 +50,12 @@ func (s *HayaokiSheet) GetLastResult() (map[string]string, error) {
 		}
 		retMap[name.(string)] = timeStr
 	}
-	return retMap, nil
+	date := ret.Values[1][0].(string)
+	isToday := false
+	if date == time.Now().Format("2006/1/2") {
+		isToday = true
+	}
+	return retMap, isToday, nil
 }
 
 // AddNewDate adds new date to hayaoki sheet.
