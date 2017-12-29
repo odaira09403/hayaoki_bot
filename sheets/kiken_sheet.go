@@ -125,44 +125,46 @@ func (s *KikenSheet) AddDate(userName string, dates []time.Time) error {
 	return errors.New("User not found")
 }
 
-func (s *KikenSheet) containsDates(prevDates string, dates []time.Time) (bool, error) {
-	rangeDates := [][]time.Time{{}}
-	for _, date := range strings.Split(prevDates, ",") {
-		rangeDate := []time.Time{}
-		if strings.Contains(date, "-") {
-			spritDate := strings.Split(date, "-")
-			day1, err := time.Parse("2006/1/2", spritDate[0])
-			if err != nil {
-				return false, err
-			}
-			day2, err := time.Parse("2006/1/2", spritDate[1])
-			if err != nil {
-				return false, err
-			}
-			rangeDate = append(rangeDate, day1)
-			rangeDate = append(rangeDate, day2)
-		} else {
-			day1, err := time.Parse("2006/1/2", date)
-			if err != nil {
-				return false, err
-			}
-			rangeDate = append(rangeDate, day1)
+func (s *KikenSheet) containsDates(dateStr string, targetDates []time.Time) (bool, error) {
+	for _, targetDate := range targetDates {
+		contains, err := s.ContainsDate(dateStr, targetDate)
+		if err != nil {
+			return false, err
 		}
-		rangeDates = append(rangeDates, rangeDate)
+		if contains {
+			return true, nil
+		}
 	}
+	return false, nil
+}
 
-	for _, cDate := range dates {
-		noNoizeDate := time.Date(cDate.Year(), cDate.Month(), cDate.Day(), 0, 0, 0, 0, time.UTC)
-		for _, pDates := range rangeDates {
-			if len(pDates) == 1 {
-				if noNoizeDate.Equal(pDates[0]) {
-					return true, nil
-				}
-			} else if len(pDates) == 2 {
-				if (noNoizeDate.After(pDates[0]) && noNoizeDate.Before(pDates[1])) ||
-					noNoizeDate.Equal(pDates[0]) || noNoizeDate.Equal(pDates[1]) {
-					return true, nil
-				}
+func (s *KikenSheet) ContainsDate(dateStr string, targetDate time.Time) (bool, error) {
+	dateList := strings.Split(dateStr, ",")
+	for _, date := range dateList {
+		dates := strings.Split(date, "-")
+		if len(dates) == 1 {
+			day, err := time.Parse("2006/1/2", dates[0])
+			if err != nil {
+				return false, err
+			}
+			begin := day.Unix()
+			end := day.Add(24*time.Hour).Unix()
+			if targetDate.Unix() > begin && targetDate.Unix() < end {
+				return true, nil
+			}
+		} else if len(dates) == 2 {
+			day1, err := time.Parse("2006/1/2", dates[0])
+			if err != nil {
+				return false, err
+			}
+			day2, err := time.Parse("2006/1/2", dates[1])
+			if err != nil {
+				return false, err
+			}
+			begin := day1.Unix()
+			end := day2.Add(24*time.Hour).Unix()
+			if targetDate.Unix() > begin && targetDate.Unix() < end {
+				return true, nil
 			}
 		}
 	}
