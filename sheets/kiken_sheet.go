@@ -68,7 +68,7 @@ func (s *KikenSheet) AddNewUser(userName string) error {
 	}
 
 	_, err = s.Sheets.Values.Update(SpreadSheetID, "kiken!A2", &sheets.ValueRange{
-		Values: [][]interface{}{[]interface{}{userName}},
+		Values: [][]interface{}{{userName}},
 	}).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (s *KikenSheet) AddDate(userName string, dates []time.Time) error {
 				}
 			}
 			_, err = s.Sheets.Values.Update(SpreadSheetID, "kiken!B"+strconv.Itoa(i+2), &sheets.ValueRange{
-				Values: [][]interface{}{[]interface{}{writeDates}},
+				Values: [][]interface{}{{writeDates}},
 			}).ValueInputOption("USER_ENTERED").Do()
 			if err != nil {
 				return err
