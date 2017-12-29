@@ -7,6 +7,7 @@ import (
 )
 
 const location = "Asia/Tokyo"
+const channelID = "C0FN5ULTD"
 
 func init() {
 	// Init timezone
@@ -16,9 +17,9 @@ func init() {
 	}
 	time.Local = loc
 
-	slashHandler := handler.NewSlashHandler()
+	slashHandler := handler.NewSlashHandler(channelID)
 	slashHandler.Run()
 
-	cronHandler := handler.NewCronHandler()
+	cronHandler := handler.NewCronHandler(channelID)
 	cronHandler.Run()
 }
