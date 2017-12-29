@@ -127,35 +127,5 @@ func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *CronHandler) containsToday(dateStr string) (bool, error) {
-	dateList := strings.Split(dateStr, ",")
-	now := time.Now()
-	for _, date := range dateList {
-		dates := strings.Split(date, "-")
-		if len(dates) == 1 {
-			day, err := time.Parse("2006/1/2", dates[0])
-			if err != nil {
-				return false, err
-			}
-			begin := day.Unix()
-			end := day.Add(24*time.Hour).Unix()
-			if now.Unix() > begin && now.Unix() < end {
-				return true, nil
-			}
-		} else if len(dates) == 2 {
-			day1, err := time.Parse("2006/1/2", dates[0])
-			if err != nil {
-				return false, err
-			}
-			day2, err := time.Parse("2006/1/2", dates[1])
-			if err != nil {
-				return false, err
-			}
-			begin := day1.Unix()
-			end := day2.Add(24*time.Hour).Unix()
-			if now.Unix() > begin && now.Unix() < end {
-				return true, nil
-			}
-		}
-	}
-	return false, nil
+	return sheets.KikenSheet{}.ContainsDate(dateStr, time.Now())
 }
