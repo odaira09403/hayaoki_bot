@@ -62,9 +62,13 @@ func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
 		IconURL:     "https://avatars.slack-edge.com/2017-10-07/252871472931_f189dd4ee78316f6cd13_72.png",
 	}
 
-	hayaokiMap, err := s.SpreadSheet.Hayaoki.GetLastResult()
+	hayaokiMap, isToday, err := s.SpreadSheet.Hayaoki.GetLastResult()
 	if err != nil {
 		log.Errorf(ctx, err.Error())
+		return
+	}
+	if !isToday {
+		log.Infof(ctx, "LatestResult is not today.")
 		return
 	}
 	log.Infof(ctx, "[HayaokiMap]")
