@@ -243,7 +243,7 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 		}
 		if _, _, err := s.BotClient.PostMessage(
 			s.HayaokiChannel,
-			user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[0].Format("01月02日") + "の間棄権します。",
+			user + "さんがに" + dates[0].Format("01月02日") + "から" + dates[1].Format("01月02日") + "の間棄権します。",
 			s.PostPram); err != nil {
 				return err
 		}
