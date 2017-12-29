@@ -39,8 +39,8 @@ type SlashHandler struct {
 }
 
 // NewSlashHandler create SlashHandler instance.
-func NewSlashHandler() *SlashHandler {
-	return &SlashHandler{HayaokiChannel: "C0FN5ULTD"}
+func NewSlashHandler(channelID string) *SlashHandler {
+	return &SlashHandler{HayaokiChannel: channelID}
 }
 
 // Run runs SlashHandler.

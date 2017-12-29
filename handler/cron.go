@@ -23,8 +23,8 @@ type CronHandler struct {
 }
 
 // NewSlashHandler create SlashHandler instance.
-func NewCronHandler() *CronHandler {
-	return &CronHandler{HayaokiChannel: "C0FN5ULTD"}
+func NewCronHandler(channelID string) *CronHandler {
+	return &CronHandler{HayaokiChannel: channelID}
 }
 
 // Run runs SlashHandler.
