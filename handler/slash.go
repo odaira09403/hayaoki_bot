@@ -124,9 +124,9 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 			s.responseMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 		}
 	case "list":
-		s.responseMsg(w, "Valid format.\n", "ephemeral")
+		s.responseMsg(w, "Valid format. But it is not implemented.\n", "ephemeral")
 	case "delete":
-		s.responseMsg(w, "Valid format.\n", "ephemeral")
+		s.responseMsg(w, "Valid format. But it is not implemented.\n", "ephemeral")
 	default:
 		s.responseMsg(w, "Invalid format.\n"+UsageString, "ephemeral")
 	}
