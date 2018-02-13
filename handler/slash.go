@@ -149,9 +149,9 @@ func (s *SlashHandler) responseMsg(w http.ResponseWriter, text string, messageTy
 func (s *SlashHandler) hayaoki(user string, w http.ResponseWriter) error {
 	// Time limitation
 	now := time.Now()
-	limit := time.Date(now.Year(), now.Month(), now.Day(), 8, 35, 0, 0, now.Location())
+	limit := time.Date(now.Year(), now.Month(), now.Day(), 8, 5, 0, 0, now.Location())
 	if now.Hour() < 6 || now.After(limit) {
-		return errors.New("Please type /hayaoki between 6:00 and 8:35")
+		return errors.New("Please type /hayaoki between 6:00 and 8:05")
 	}
 
 	// Append the sheet date if the date is not today.
