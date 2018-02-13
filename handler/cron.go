@@ -109,10 +109,10 @@ func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	// Add san.
 	for i, user := range failedUsers {
-		failedUsers[i] = user + "さん"
+		failedUsers[i] = "<@" + user + ">さん"
 	}
 	for i, user := range successUsers {
-		successUsers[i] = user + "さん"
+		successUsers[i] = "<@" +  user + ">さん"
 	}
 
 	resultStr := strings.Join(failedUsers, ",") + "は" + strings.Join(successUsers, ",") + "に飲み物を提供してください。"
