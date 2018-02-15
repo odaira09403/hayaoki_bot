@@ -214,7 +214,7 @@ func (s *SlashHandler) kiken(user string, dateStr string, w http.ResponseWriter)
 			if err != nil {
 				return err
 			}
-			date := time.Date(now.Year(), t.Month(), t.Day(), 7, 30, 0, 0, now.Location())
+			date := time.Date(now.Year(), t.Month(), t.Day(), 7, 00, 0, 0, now.Location())
 			if now.After(date) {
 				date = date.AddDate(1, 0, 0)
 			}
