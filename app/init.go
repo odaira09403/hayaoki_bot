@@ -7,7 +7,7 @@ import (
 )
 
 const location = "Asia/Tokyo"
-const channelID = "C7G1P683H"
+const channelID = "C0FN5ULTD"
 
 func init() {
 	// Init timezone
