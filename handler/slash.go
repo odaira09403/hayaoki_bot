@@ -10,7 +10,7 @@ import (
 	"google.golang.org/appengine"
 	"context"
 	"google.golang.org/appengine/datastore"
-	"github.com/odaira09403/hayaoki_bot/sheets"
+	"github.com/tdaira/hayaoki_bot/sheets"
 	"github.com/nlopes/slack"
 	"google.golang.org/appengine/urlfetch"
 	"errors"

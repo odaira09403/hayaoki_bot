@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"context"
 	"github.com/nlopes/slack"
-	"github.com/odaira09403/hayaoki_bot/sheets"
+	"github.com/tdaira/hayaoki_bot/sheets"
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
