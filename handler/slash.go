@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine"
 	"context"
 	"google.golang.org/appengine/datastore"
 	"github.com/tdaira/hayaoki_bot/sheets"
@@ -53,8 +52,7 @@ type SlackToken struct {
 }
 
 func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	s.Ctx = ctx
+	ctx := r.Context()
 	log.Infof(ctx, "Receive message.")
 
 	// Get slash command token.

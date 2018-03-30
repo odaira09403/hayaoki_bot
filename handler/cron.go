@@ -6,7 +6,6 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/tdaira/hayaoki_bot/sheets"
 	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/datastore"
 	"strings"
@@ -33,12 +32,11 @@ func (s *CronHandler) Run() {
 }
 
 func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	s.Ctx = ctx
+	ctx := r.Context()
 	log.Infof(ctx, "Receive message.")
 
 	// New spread sheet instance.
-	var err error = nil
+	var err error
 	s.SpreadSheet, err = sheets.NewSpreadSheet(ctx)
 	if err != nil {
 		log.Errorf(ctx, err.Error())
