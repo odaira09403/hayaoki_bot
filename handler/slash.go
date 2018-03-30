@@ -13,6 +13,7 @@ import (
 	"github.com/nlopes/slack"
 	"google.golang.org/appengine/urlfetch"
 	"errors"
+	"crypto/hmac"
 )
 
 const (
@@ -64,7 +65,8 @@ func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check access token.
-	if r.PostFormValue("token") != slackToken.Value {
+	// Compare the token in constant time.
+	if !hmac.Equal([]byte(r.PostFormValue("token")), []byte(slackToken.Value)) {
 		log.Infof(ctx, "Invalid token.")
 		return
 	}
