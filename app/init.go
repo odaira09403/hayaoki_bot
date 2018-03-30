@@ -3,7 +3,7 @@ package app
 import (
 	"time"
 
-	"github.com/odaira09403/hayaoki_bot/handler"
+	"github.com/tdaira/hayaoki_bot/handler"
 )
 
 const location = "Asia/Tokyo"
