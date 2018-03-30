@@ -1,15 +1,17 @@
 package handler
 
 import (
-	"net/http"
 	"context"
-	"github.com/nlopes/slack"
-	"github.com/tdaira/hayaoki_bot/sheets"
-	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/datastore"
+	"net/http"
 	"strings"
 	"time"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
+	"github.com/tdaira/hayaoki_bot/sheets"
+	"github.com/nlopes/slack"
 )
 
 // SlashHandler handles slash message.
@@ -32,7 +34,8 @@ func (s *CronHandler) Run() {
 }
 
 func (s *CronHandler) handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx := appengine.NewContext(r)
+	s.Ctx = ctx
 	log.Infof(ctx, "Receive message.")
 
 	// New spread sheet instance.

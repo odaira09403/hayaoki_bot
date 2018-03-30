@@ -1,19 +1,20 @@
 package handler
 
 import (
+	"context"
+	"crypto/hmac"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
-	"google.golang.org/appengine/log"
-	"context"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 	"github.com/tdaira/hayaoki_bot/sheets"
 	"github.com/nlopes/slack"
-	"google.golang.org/appengine/urlfetch"
-	"errors"
-	"crypto/hmac"
 )
 
 const (
@@ -53,7 +54,8 @@ type SlackToken struct {
 }
 
 func (s *SlashHandler) handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx := appengine.NewContext(r)
+	s.Ctx = ctx
 	log.Infof(ctx, "Receive message.")
 
 	// Get slash command token.
